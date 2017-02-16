@@ -103,7 +103,7 @@ class L3DG20(object):
         if self.rate == 'AUTO' and any(abs(reading)) > 32760:
             self.range_up()
 
-        return reading * GYRO_SENSITIVITY[self.rate] * self.dps_to_rad
+        return [value * GYRO_SENSITIVITY[self.rate] * self.dps_to_rad for value in reading]
 
     def calibrate(self):
         # TODO: write a calibration routine to measure 0 offset and sensor noise
