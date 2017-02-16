@@ -1,0 +1,109 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016 Adafruit Industries
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+import struct
+
+L3GD20_ADDRESS = 0x6B  # 1101011
+L3GD20_POLL_TIMEOUT = 100  # Maximum number of read attempts
+L3GD20_ID = 0xD4
+L3GD20H_ID = 0xD7
+
+# Sensitivity values from the mechanical characteristics in the datasheet.
+GYRO_SENSITIVITY = {'250DPS': 0.00875,
+                    '500DPS': 0.0175,
+                    '2000DPS': 0.070}
+
+GYRO_RATE = {'250DPS': 0b00,
+             '500DPS': 0b01,
+             '2000DPS': 0b10}
+
+GYRO_REGISTER = {'WHO_AM_I': 0x0F,  # 11010100   r
+                 'CTRL_REG1': 0x20,  # 00000111   rw
+                 'CTRL_REG2': 0x21,  # 00000000   rw
+                 'CTRL_REG3': 0x22,  # 00000000   rw
+                 'CTRL_REG4': 0x23,  # 00000000   rw
+                 'CTRL_REG5': 0x24,  # 00000000   rw
+                 'REFERENCE': 0x25,  # 00000000   rw
+                 'OUT_TEMP': 0x26,  # r
+                 'STATUS_REG': 0x27,  # r
+                 'OUT_X_L': 0x28,  # r
+                 'OUT_X_H': 0x29,  # r
+                 'OUT_Y_L': 0x2A,  # r
+                 'OUT_Y_H': 0x2B,  # r
+                 'OUT_Z_L': 0x2C,  # r
+                 'OUT_Z_H': 0x2D,  # r
+                 'FIFO_CTRL_REG': 0x2E,  # 00000000   rw
+                 'FIFO_SRC_REG': 0x2F,  # r
+                 'INT1_CFG': 0x30,  # 00000000   rw
+                 'INT1_SRC': 0x31,  # r
+                 'TSH_XH': 0x32,  # 00000000   rw
+                 'TSH_XL': 0x33,  # 00000000   rw
+                 'TSH_YH': 0x34,  # 00000000   rw
+                 'TSH_YL': 0x35,  # 00000000   rw
+                 'TSH_ZH': 0x36,  # 00000000   rw
+                 'TSH_ZL': 0x37,  # 00000000   rw
+                 'INT1_DURATION': 0x38}  # 00000000   rw
+
+
+class L3DG20(object):
+    """L3DG20 Gyroscope.
+    """
+
+    def __init__(self, rate=GYRO_RATE['250DPS'], gyro_address=L3GD20_ADDRESS, i2c=None, **kwargs):
+        """Initialize the L3DG20 Gyroscope. Set the refresh rate if it differs from the sensor default 250dps.
+        """
+        # Setup I2C interface for gyroscope.
+        if i2c is None:
+            import Adafruit_GPIO.I2C as I2C
+            i2c = I2C
+
+        self._gyro = i2c.get_i2c_device(gyro_address, **kwargs)
+
+        # Enable the gyro by changing the power-down bit (default | PD bit)
+        # (0: (default) PD enabled, 1: PD disabled)
+        self._gyro.write8(GYRO_REGISTER['CTRL_REG1'], 0b00000111 | 0b00001000)
+
+        # Set gyro refresh rate (250 DPS, 500 DPS, 2000 DPS) if it differs from sensor default (250dps) (0b00000000).
+        if rate != 0b00:
+            self._gyro.write8(GYRO_REGISTER['CTRL_REG4'], 0b00000000 | rate << 4)
+
+    def read_raw(self):
+        """Read the gyroscope values.  A tuple will be returned with:
+          (gyro X, gyro Y, gyro Z)
+        """
+        # Read the gyro as signed 16-bit little endian values.
+        gyro_raw = self._gyro.readList(GYRO_REGISTER['OUT_X_L'] | 0x80, 6)
+        gyro_data = struct.unpack('<hhh', gyro_raw)
+
+        return gyro_data
+
+    # def set_gyro_gain(gain=LSM303_MAGGAIN_1_3):
+    #     """Set the magnetometer gain.  Gain should be one of the following
+    #     constants:
+    #      - LSM303_MAGGAIN_1_3 = +/- 1.3 (default)
+    #      - LSM303_MAGGAIN_1_9 = +/- 1.9
+    #      - LSM303_MAGGAIN_2_5 = +/- 2.5
+    #      - LSM303_MAGGAIN_4_0 = +/- 4.0
+    #      - LSM303_MAGGAIN_4_7 = +/- 4.7
+    #      - LSM303_MAGGAIN_5_6 = +/- 5.6
+    #      - LSM303_MAGGAIN_8_1 = +/- 8.1
+    #     """
+    #     self._mag.write8(LSM303_REGISTER_MAG_CRB_REG_M, gain)
