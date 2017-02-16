@@ -17,7 +17,7 @@ classifiers = ['Development Status :: 4 - Beta',
                'Topic :: Software Development',
                'Topic :: System :: Hardware']
 
-setup(name              = 'Adafruit_LSM303',
+setup(name              = 'LSM303',
       version           = '1.0.1',
       author            = 'Tony DiCola',
       author_email      = 'tdicola@adafruit.com',

@@ -67,26 +67,26 @@ class L3DG20(object):
     """L3DG20 Gyroscope.
     """
 
-    def __init__(self, rate=GYRO_RATE['250DPS'], gyro_address=L3GD20_ADDRESS, i2c=None, **kwargs):
+    def __init__(self, rate='250DPS', gyro_address=L3GD20_ADDRESS, **kwargs):
         """Initialize the L3DG20 Gyroscope. Set the refresh rate if it differs from the sensor default 250dps.
         """
+        self.dps_to_rad = 0.017453293
+        self.rate = rate
         # Setup I2C interface for gyroscope.
-        if i2c is None:
-            import Adafruit_GPIO.I2C as I2C
-            i2c = I2C
-
+        import Adafruit_GPIO.I2C as i2c
         self._gyro = i2c.get_i2c_device(gyro_address, **kwargs)
 
         # Enable the gyro by changing the power-down bit (default | PD bit)
         # (0: (default) PD enabled, 1: PD disabled)
+        self._gyro.write8(GYRO_REGISTER['CTRL_REG1'], 0b00000000)
         self._gyro.write8(GYRO_REGISTER['CTRL_REG1'], 0b00000111 | 0b00001000)
 
         # Set gyro refresh rate (250 DPS, 500 DPS, 2000 DPS) if it differs from sensor default (250dps) (0b00000000).
-        if rate != 0b00:
-            self._gyro.write8(GYRO_REGISTER['CTRL_REG4'], 0b00000000 | rate << 4)
+        if rate != '250DPS':
+            self._gyro.write8(GYRO_REGISTER['CTRL_REG4'], 0b00000000 | GYRO_RATE[rate] << 4)
 
     def read_raw(self):
-        """Read the gyroscope values.  A tuple will be returned with:
+        """Read the raw gyroscope sensor values.  A tuple will be returned with:
           (gyro X, gyro Y, gyro Z)
         """
         # Read the gyro as signed 16-bit little endian values.
@@ -95,15 +95,20 @@ class L3DG20(object):
 
         return gyro_data
 
-    # def set_gyro_gain(gain=LSM303_MAGGAIN_1_3):
-    #     """Set the magnetometer gain.  Gain should be one of the following
-    #     constants:
-    #      - LSM303_MAGGAIN_1_3 = +/- 1.3 (default)
-    #      - LSM303_MAGGAIN_1_9 = +/- 1.9
-    #      - LSM303_MAGGAIN_2_5 = +/- 2.5
-    #      - LSM303_MAGGAIN_4_0 = +/- 4.0
-    #      - LSM303_MAGGAIN_4_7 = +/- 4.7
-    #      - LSM303_MAGGAIN_5_6 = +/- 5.6
-    #      - LSM303_MAGGAIN_8_1 = +/- 8.1
-    #     """
-    #     self._mag.write8(LSM303_REGISTER_MAG_CRB_REG_M, gain)
+    def read(self):
+        """Return the corrected gyro sensor reading in rad/s
+        """
+        reading = self.read_raw()
+
+        if self.rate == 'AUTO' and any(abs(reading)) > 32760:
+            self.range_up()
+
+        return reading * GYRO_SENSITIVITY[self.rate] * self.dps_to_rad
+
+    def calibrate(self):
+        # TODO: write a calibration routine to measure 0 offset and sensor noise
+        pass
+
+    def range_up(self):
+        # TODO: scale up to next range
+        pass

@@ -6,14 +6,14 @@
 import time
 
 # Import the LSM303 module.
-import Adafruit_LSM303
+import LSM303
 
 
 # Create a LSM303 instance.
-lsm303 = Adafruit_LSM303.LSM303()
+lsm303 = LSM303.LSM303()
 
 # Alternatively you can specify the I2C bus with a bus parameter:
-#lsm303 = Adafruit_LSM303.LSM303(busum=2)
+#lsm303 = LSM303.LSM303(busum=2)
 
 print('Printing accelerometer & magnetometer X, Y, Z axis values, press Ctrl-C to quit...')
 while True:
