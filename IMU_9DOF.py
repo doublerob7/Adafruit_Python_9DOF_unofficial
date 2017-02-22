@@ -1,6 +1,6 @@
-from L3DG20 import L3DG20_2 as L3DG20
-from LSM303 import LSM303_2 as LSM303
-from micropythonFusion.fusion import Fusion
+from Adafruit_Python_9DOF_unofficial import LSM303
+from Adafruit_Python_9DOF_unofficial import L3DG20
+from Adafruit_Python_9DOF_unofficial.micropythonFusion.fusion import Fusion
 
 
 class Event:
@@ -13,9 +13,9 @@ class IMU(Fusion):
 
     def __init__(self):
         super().__init__()
-        self.accel = LSM303.LSM303Accel()
-        self.mag = LSM303.LSM303Mag()
-        self.gyro = L3DG20.L3DG20()
+        self.accel = LSM303.Accelerometer()
+        self.mag = LSM303.Magnetometer()
+        self.gyro = L3DG20.Gyroscope()
 
     def smart_update(self):
         """Use update_nomag if magnetometer isn't configured, otherwise use update()"""
