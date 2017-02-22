@@ -1,9 +1,7 @@
-#import sys
-#sys.path.append("~/Adafruit_Python_9DOF_unofficial
 from Adafruit_Python_9DOF_unofficial.IMU_9DOF import IMU
 
 imu = IMU()
 
 while True:
     imu.smart_update()
-    print(imu.orientation())
+    print("pitch:{:<7.1f} roll:{:<7.1f} heading:{:<7.1f}".format(*imu.orientation()))
