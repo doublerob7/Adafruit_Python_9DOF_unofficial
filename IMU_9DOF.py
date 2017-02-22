@@ -1,6 +1,6 @@
-import L3DG20
-import LSM303
-from micropythonFusion.fusion import Fusion
+from Adafruit_Python_9DOF_unofficial import LSM303
+from Adafruit_Python_9DOF_unofficial import L3DG20
+from Adafruit_Python_9DOF_unofficial.micropythonFusion.fusion import Fusion
 
 
 class Event:

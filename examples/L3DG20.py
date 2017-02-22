@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import struct
-from .. import I2C_Sensor
 
 L3GD20_ADDRESS = 0x6B  # 1101011
 L3GD20_POLL_TIMEOUT = 100  # Maximum number of read attempts
@@ -64,41 +63,37 @@ GYRO_REGISTER = {'WHO_AM_I': 0x0F,  # 11010100   r
                  'INT1_DURATION': 0x38}  # 00000000   rw
 
 
-class Gyroscope(I2C_Sensor.I2CSensor):
+class L3DG20(object):
     """L3DG20 Gyroscope.
     """
 
-    def __init__(self, address=L3GD20_ADDRESS, registers=GYRO_REGISTER, rate='250DPS'):
-        super().__init__(address, registers)
+    def __init__(self, rate='250DPS', gyro_address=L3GD20_ADDRESS, **kwargs):
         """Initialize the L3DG20 Gyroscope. Set the refresh rate if it differs from the sensor default 250dps.
         """
         self.dps_to_rad = 0.017453293
         self.rate = rate
-        self.bias = (0, 0, 0)
+        # Setup I2C interface for gyroscope.
+        import Adafruit_GPIO.I2C as i2c
+        self._gyro = i2c.get_i2c_device(gyro_address, **kwargs)
+
+        # Enable the gyro by changing the power-down bit (default | PD bit)
+        # (0: (default) PD enabled, 1: PD disabled)
+        self._gyro.write8(GYRO_REGISTER['CTRL_REG1'], 0b00000000)
+        self._gyro.write8(GYRO_REGISTER['CTRL_REG1'], 0b00000111 | 0b00001000)
 
         # Set gyro refresh rate (250 DPS, 500 DPS, 2000 DPS) if it differs from sensor default (250dps) (0b00000000).
         if rate != '250DPS':
-            self.set_rate(rate)
-
-    def enable(self):
-        """Gets called in super().__init__()"""
-        # Enable the gyro by changing the power-down bit (default | PD bit)
-        # (0: (default) PD enabled, 1: PD disabled)
-        self._sensor.write8(GYRO_REGISTER['CTRL_REG1'], 0b00000000)
-        self._sensor.write8(GYRO_REGISTER['CTRL_REG1'], 0b00000111 | 0b00001000)
-
-    def set_rate(self, rate):
-        self._sensor.write8(GYRO_REGISTER['CTRL_REG4'], 0b00000000 | GYRO_RATE[rate] << 4)
+            self._gyro.write8(GYRO_REGISTER['CTRL_REG4'], 0b00000000 | GYRO_RATE[rate] << 4)
 
     def read_raw(self):
         """Read the raw gyroscope sensor values.  A tuple will be returned with:
           (gyro X, gyro Y, gyro Z)
         """
         # Read the gyro as signed 16-bit little endian values.
-        gyro_raw = self._sensor.readList(GYRO_REGISTER['OUT_X_L'] | 0x80, 6)
+        gyro_raw = self._gyro.readList(GYRO_REGISTER['OUT_X_L'] | 0x80, 6)
         gyro_data = struct.unpack('<hhh', gyro_raw)
 
-        return (data - bias for data, bias in zip(gyro_data, self.bias))
+        return gyro_data
 
     def read(self):
         """Return the corrected gyro sensor reading in rad/s
@@ -109,6 +104,10 @@ class Gyroscope(I2C_Sensor.I2CSensor):
             self.range_up()
 
         return [value * GYRO_SENSITIVITY[self.rate] * self.dps_to_rad for value in reading]
+
+    def calibrate(self):
+        # TODO: write a calibration routine to measure 0 offset and sensor noise
+        pass
 
     def range_up(self):
         # TODO: scale up to next range
