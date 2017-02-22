@@ -1,6 +1,6 @@
 from L3DG20 import L3DG20_2 as L3DG20
 from LSM303 import LSM303_2 as LSM303
-from fusion.fusion import Fusion
+from micropythonFusion.fusion import Fusion
 
 
 class Event:
@@ -29,7 +29,7 @@ class IMU(Fusion):
         return self.pitch, self.roll, self.heading
 
     def gravity(self):
-        # TODO: output the gravity vector orientation result of sensor fusion
+        # TODO: output the gravity vector orientation result of sensor micropythonFusion
         # gravity =
         pass
 
