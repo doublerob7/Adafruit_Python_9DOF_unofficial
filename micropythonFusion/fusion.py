@@ -6,10 +6,7 @@
 # V0.5 angles method replaced by heading pitch and roll properties
 # V0.4 calibrate method added
 
-# import pyb
-import time
-
-time.time()
+import datetime
 
 from math import sqrt, atan2, asin, degrees, radians
 '''
@@ -30,10 +27,11 @@ the CPU in a threaded environment. It sets magbias to the mean values of x,y,z
 
 
 def micros():
-    return time.time()/1000000
+    time = datetime.datetime.now()
+    return time.microsecond
 
 
-def elapsed_micros(time_in):
+def delta_time(time_in):
     return time_in - micros()
 
 
@@ -125,7 +123,7 @@ class Fusion(object):
         qDot4 = 0.5 * (q1 * gz + q2 * gy - q3 * gx) - self.beta * s4
 
         # Integrate to yield quaternion
-        deltat = elapsed_micros(self.start_time) / 1000000
+        deltat = delta_time(self.start_time)
         self.start_time = micros()
         q1 += qDot1 * deltat
         q2 += qDot2 * deltat
@@ -220,7 +218,7 @@ class Fusion(object):
         qDot4 = 0.5 * (q1 * gz + q2 * gy - q3 * gx) - self.beta * s4
 
         # Integrate to yield quaternion
-        deltat = elapsed_micros(self.start_time) / 1000000
+        deltat = delta_time(self.start_time)
         self.start_time = micros()
         q1 += qDot1 * deltat
         q2 += qDot2 * deltat
