@@ -64,7 +64,7 @@ GYRO_REGISTER = {'WHO_AM_I': 0x0F,  # 11010100   r
                  'INT1_DURATION': 0x38}  # 00000000   rw
 
 
-class L3DG20(I2CSensor):
+class Gyroscope(I2CSensor):
     """L3DG20 Gyroscope.
     """
 

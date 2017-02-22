@@ -1,5 +1,5 @@
-from L3DG20 import L3DG20
-from LSM303 import LSM303
+import L3DG20
+import LSM303
 from micropythonFusion.fusion import Fusion
 
 
@@ -13,9 +13,9 @@ class IMU(Fusion):
 
     def __init__(self):
         super().__init__()
-        self.accel = LSM303.LSM303Accel()
-        self.mag = LSM303.LSM303Mag()
-        self.gyro = L3DG20()
+        self.accel = LSM303.Accelerometer()
+        self.mag = LSM303.Magnetometer()
+        self.gyro = L3DG20.Gyroscope()
 
     def smart_update(self):
         """Use update_nomag if magnetometer isn't configured, otherwise use update()"""

@@ -45,7 +45,7 @@ LSM303_MAGGAIN_5_6 = 0xC0 # +/- 5.6
 LSM303_MAGGAIN_8_1 = 0xE0 # +/- 8.1
 
 
-class LSM303Accel(I2CSensor):
+class Accelerometer(I2CSensor):
     """LSM303 accelerometer
     """
 
@@ -84,7 +84,7 @@ class LSM303Accel(I2CSensor):
         return accel
 
 
-class LSM303Mag(I2CSensor):
+class Magnetometer(I2CSensor):
     """LSM303 magnetometer."""
 
     def __init__(self, address=LSM303_ADDRESS_MAG):
