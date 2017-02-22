@@ -61,6 +61,4 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 .idea/
-.idea (1)/
-.idea/workspace.xml
-.idea/Adafruit_Python_LSM303.iml
+
