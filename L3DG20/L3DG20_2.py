@@ -74,6 +74,7 @@ class L3DG20(I2CSensor):
         """
         self.dps_to_rad = 0.017453293
         self.rate = rate
+        self.bias = (0, 0, 0)
 
         # Set gyro refresh rate (250 DPS, 500 DPS, 2000 DPS) if it differs from sensor default (250dps) (0b00000000).
         if rate != '250DPS':
@@ -97,7 +98,7 @@ class L3DG20(I2CSensor):
         gyro_raw = self._sensor.readList(GYRO_REGISTER['OUT_X_L'] | 0x80, 6)
         gyro_data = struct.unpack('<hhh', gyro_raw)
 
-        return gyro_data - self.bias
+        return (data - bias for data, bias in zip(gyro_data, self.bias))
 
     def read(self):
         """Return the corrected gyro sensor reading in rad/s
